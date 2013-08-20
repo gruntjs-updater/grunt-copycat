@@ -2,49 +2,107 @@
  * grunt-copycat
  * https://github.com/globusonline/grunt-copycat
  *
- * Copyright (c) 2013 Jim Kogler
+ * Copyright (c) 2013 Globus Online
  * Licensed under the MIT license.
  */
 
 'use strict';
 
 module.exports = function(grunt) {
+  grunt.registerMultiTask("merge", "A partially destructive, partially additive copy task.", function() {
 
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
+    var dest;
+    var buffer;
+    var path = require("path");
+    var tally = {
+      merged : 0,
+      dirs : 0,
+      copied : 0
+    }
+    var writtenMap = {};
 
-  grunt.registerMultiTask('copycat', 'A combination copy and concatenation task designed for doing a careful merge of directories during deployment.', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
-
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-      // Concat specified files.
-      var src = f.src.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
+    var mergeExts = this.data.mergeExts;
+    var shouldMerge = function(str) {
+      var ext = '';
+      for(var i=0;i<mergeExts.length;i++){
+        ext = mergeExts[i];
+        if(str.split(".").pop()===ext) {
           return true;
         }
-      }).map(function(filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
+      }
 
-      // Handle options.
-      src += options.punctuation;
+      return false;
+    }
 
-      // Write the destination file.
-      grunt.file.write(f.dest, src);
 
-      // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
+    var obj = {dest : this.data.dest, expand:true};
+
+    var files = [];
+
+    this.data.dirs.forEach(function(dir) {
+      obj.cwd = dir;
+      obj.src = "**";
+      files = files.concat(grunt.task.normalizeMultiTaskFiles(obj));
     });
+
+    files.forEach(function(filePair) {
+      isExpandedPair = filePair.orig.expand || false;
+      filePair.src.forEach(function(src) {
+
+        if(isDir(filePair.dest)) {
+          dest = (isExpandedPair) ? filePair.dest : path.join(filePair.dest, src);
+        }
+        else {
+          dest = filePair.dest;
+        }
+
+
+        if (grunt.file.isDir(src)) {
+          grunt.verbose.writeln("Creating " + dest.cyan);
+          grunt.file.mkdir(dest);
+          tally.dirs++;
+        } 
+        else {
+          if(shouldMerge(src)) {
+            buffer = "";
+            if(grunt.file.exists(dest)&&!writtenMap[dest]) {
+              buffer += grunt.file.read(dest);
+            }
+            writtenMap[dest] = true;
+
+            buffer += grunt.file.read(src);
+            grunt.file.write(dest, buffer);
+            tally.merged++;
+          }
+          else {
+            grunt.verbose.writeln("Copying " + src.cyan + " -> " + dest.cyan);
+            grunt.file.copy(src, dest);
+            tally.copied++;           
+          }
+        }
+      });
+    });
+
+    if (tally.dirs) {
+      grunt.log.writeln("Created " + tally.dirs.toString().cyan + " directories.");
+    }
+    if (tally.copied) {
+      grunt.log.writeln("Copied " + tally.copied.toString().cyan + " files.");
+    }
+    if (tally.merged) {
+      grunt.log.writeln("Merged " + tally.merged.toString().cyan + " files");
+    }
+
   });
+
+  //This inane function is by convention from grunt-contrib-copy.  
+  //I'm not going to mess with it, but I did rename it.  
+  var isDir = function(dest) {
+    if (grunt.util._.endsWith(dest, "/")) {
+      return true;
+    } 
+    return false;
+  };
+
 
 };
