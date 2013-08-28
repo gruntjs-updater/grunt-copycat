@@ -1,8 +1,9 @@
 /*
  * grunt-copycat
- * https://github.com/globusonline/grunt-copycat
+ * 
  *
- * Copyright (c) 2013 Jim Kogler
+ * Copyright (c) 2013 Globus Online
+ * Author Jim Kogler
  * Licensed under the MIT license.
  */
 
@@ -16,49 +17,80 @@ module.exports = function(grunt) {
       all: [
         'Gruntfile.js',
         'tasks/*.js',
-        '<%= nodeunit.tests %>',
+        '<%= nodeunit.tests %>'
       ],
       options: {
-        jshintrc: '.jshintrc',
+        jshintrc: '.jshintrc'
       },
     },
 
     // Before generating any new files, remove any previously-created files.
     clean: {
-      tests: ['tmp'],
+      tests: ['tmp']
     },
 
     // Configuration to be run (and then tested).
     copycat: {
-      default_options: {
-        options: {
-        },
-        files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123'],
-        },
+      copy: {
+        dirs : ["test/fixtures/dir1", "test/fixtures/dir2", "test/fixtures/dir3"],
+        dest : "tmp/copy/",
+        options : {
+          merge : function() {return false;}
+        }
       },
-      custom_options: {
-        options: {
-          separator: ': ',
-          punctuation: ' !!!',
-        },
-        files: {
-          'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123'],
-        },
+      cat : {
+        dirs : ["test/fixtures/dir1", "test/fixtures/dir2", "test/fixtures/dir3"],
+        dest: "tmp/cat/",
+        options : {
+          merge : function() {return true;}
+        }
       },
+      copyandcat : {
+        dirs : ["test/fixtures/dir1", "test/fixtures/dir2", "test/fixtures/dir3"],
+        dest : "tmp/copyandcat/",
+        options: {
+          merge : function(file) {
+            if(file.split(".").pop()==="css") {
+              return true;
+            }
+            return false;
+          }
+        }
+      },
+      donetwice1 : {
+        dirs : ["test/fixtures/dir1", "test/fixtures/dir2", "test/fixtures/dir3"],
+        dest : "tmp/donetwice/",
+        options : {
+          merge : function(file) {
+            if(file.split(".").pop()==="css") {
+              return true;
+            }
+            return false;
+          }
+        }
+      },
+      donetwice2 : {
+        dirs : ["test/fixtures/dir1", "test/fixtures/dir2", "test/fixtures/dir3"],
+        dest : "tmp/donetwice/",
+        options : {
+          merge : function(file) {
+            if(file.split(".").pop()==="css") {
+              return true;
+            }
+            return false;
+          }
+        }
+      }
     },
 
     // Unit tests.
     nodeunit: {
-      tests: ['test/*_test.js'],
-    },
-
+      tests: ['test/*_test.js']
+    }
   });
 
-  // Actually load this plugin's task(s).
+  //Load tasks
   grunt.loadTasks('tasks');
-
-  // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-nodeunit');

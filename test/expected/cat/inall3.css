@@ -1,0 +1,10 @@
+a {
+	colors: yes;
+	dir1 : true;
+}p {
+	margins: very;
+}
+/*No one said the concat should be smart*/p {
+	margins: very;
+}
+/*No one said the concat should be smart*/

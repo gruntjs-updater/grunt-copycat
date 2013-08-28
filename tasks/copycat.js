@@ -9,7 +9,7 @@
 'use strict';
 
 module.exports = function(grunt) {
-  grunt.registerMultiTask("merge", "A partially destructive, partially additive copy task.", function() {
+  grunt.registerMultiTask("copycat", "A partially destructive, partially additive copy task.", function() {
 
     var dest;
     var buffer;
@@ -18,22 +18,12 @@ module.exports = function(grunt) {
       merged : 0,
       dirs : 0,
       copied : 0
-    }
+    };
     var writtenMap = {};
 
-    var mergeExts = this.data.mergeExts;
-    var shouldMerge = function(str) {
-      var ext = '';
-      for(var i=0;i<mergeExts.length;i++){
-        ext = mergeExts[i];
-        if(str.split(".").pop()===ext) {
-          return true;
-        }
-      }
+    var options = this.options();
 
-      return false;
-    }
-
+    var shouldMerge = options.merge;
 
     var obj = {dest : this.data.dest, expand:true};
 
@@ -46,7 +36,7 @@ module.exports = function(grunt) {
     });
 
     files.forEach(function(filePair) {
-      isExpandedPair = filePair.orig.expand || false;
+      var isExpandedPair = filePair.orig.expand || false;
       filePair.src.forEach(function(src) {
 
         if(isDir(filePair.dest)) {
@@ -65,7 +55,7 @@ module.exports = function(grunt) {
         else {
           if(shouldMerge(src)) {
             buffer = "";
-            if(grunt.file.exists(dest)&&!writtenMap[dest]) {
+            if(grunt.file.exists(dest)) {
               buffer += grunt.file.read(dest);
             }
             writtenMap[dest] = true;
