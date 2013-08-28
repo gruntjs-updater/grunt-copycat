@@ -36,48 +36,102 @@ var fs = require('fs');
 //copy, concat of a file in all 3 directories
 //
 
+
+//I started writing a function to recursively compare directory contents
+//but then I realized I shouldn't be writing code that needs to be tested
+//in a test suite.
+
+//So, a simple list of comparisons it is.
+var fileCompares = [
+  "one/emptyindir2.css",
+  "one/alsoindir2.css",
+  "two/battery.js",
+  "three/corpulent.css",
+  "four/inboth.css",
+  "emptyindir1.css",
+  "inall3.html",
+  "inall3.css"
+];
+
+var expectedPrefix = "test/expected/";
+var actualPrefix = "tmp/";
+
 exports.copycat = {
   setUp: function(done) {
     // setup here if necessary
     done();
   },
   copy: function(test) {
-    test.expect(1);
+    test.expect(8);
 
-    var actual = fs.readdirSync('tmp/copy').sort();
-    var expected = fs.readdirSync('test/expected/copy').sort();
-    test.deepEqual(expected, actual, 'Full copy, dir2 overrides dir1 where applicable.');
+    var actual, expected;
+
+    var thisStr = "copy/";
+
+    fileCompares.forEach(function(str) {
+
+      actual = grunt.file.read(actualPrefix + thisStr + str);
+      expected = grunt.file.read(expectedPrefix + thisStr + str);
+
+      test.equal(actual, expected, "Full copy, override by later directories, file: " + str);
+    });
 
     test.done();
   },
   cat: function(test) {
-    test.expect(1);
+    test.expect(8);
 
-    var actual = fs.readdirSync('tmp/cat').sort();
-    var expected = fs.readdirSync('test/expected/cat').sort();
-    test.deepEqual(expected, actual, 'Full concatenate, collisions are merged with later directories\'s file contents appearing later.');
+    var thisStr = "cat/";
+
+    var actual, expected;
+    fileCompares.forEach(function(str) {
+
+      actual = grunt.file.read(actualPrefix + thisStr + str);
+      expected = grunt.file.read(expectedPrefix + thisStr + str);
+
+      test.equal(actual, expected, "Full concatenate, collisions are merged with later directories's file contents appearing later." + str);
+    });
 
     test.done();
   },
+
+
 
   copyandcat : function(test){
-    test.expect(1);
+    test.expect(8);
 
-    var actual = fs.readdirSync('tmp/copyandcat').sort();
-    var expected = fs.readdirSync('test/expected/copyandcat').sort();
-    test.deepEqual(expected, actual, 'Copy should override as above except for .css files, which are concatenated as above.');
+    var thisStr = "copyandcat/";
+
+    var actual, expected;
+    fileCompares.forEach(function(str) {
+
+      actual = grunt.file.read(actualPrefix + thisStr + str);
+      expected = grunt.file.read(expectedPrefix + thisStr + str);
+
+      test.equal(actual, expected, "Copy should override as above except for .css files, which are concatenated as above." + str);
+    });
 
     test.done();
   },
 
+  //This test is here because of a foolhardy attempt to detect collisions based on whether the file existed in the destination or not.
   donetwice : function(test) {
-    test.expect(1);
+    test.expect(8);
 
-    var actual = fs.readdirSync('tmp/donetwice').sort();
-    var expected = fs.readdirSync('test/expected/donetwice').sort();
-    test.deepEqual(expected, actual, 'Running this task multiple times should not result in different behavior.');
-    //This test is here because of a foolhardy attempt to detect collisions based on whether the file existed in the destination or not.
+    var thisStr = "donetwice/";
+
+    var actual, expected;
+    fileCompares.forEach(function(str) {
+
+      actual = grunt.file.read(actualPrefix + thisStr + str);
+      expected = grunt.file.read(expectedPrefix + thisStr + str);
+
+      test.equal(actual, expected, "Running this task multiple times should not result in different behavior." + str);
+    });
 
     test.done();
   }
+
+
+  
 };
