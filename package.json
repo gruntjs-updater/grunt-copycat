@@ -1,7 +1,7 @@
 {
   "name": "grunt-copycat",
   "description": "A combination copy and concatenation task designed for doing a careful merge of directories during deployment.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "homepage": "https://github.com/globusonline/grunt-copycat",
   "author": {
     "name": "Jim Kogler",
