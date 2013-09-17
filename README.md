@@ -1,6 +1,6 @@
 # grunt-copycat
 
-> A combination copy and concatenation task designed for doing a careful merge of directories during deployment.
+> A combination copy and concatenation task designed for doing a careful merge of directories.
 
 ## Getting Started
 This plugin requires Grunt `~0.4.1`
@@ -32,22 +32,32 @@ grunt.initConfig({
 
 ### Options
 
-#### options.mergeExts
+#### options.merge
 
-An array of extensions to merge instead of overwriting.  
+This function will be called for every file.  If it returns true, the task will concatenate the file instead of copying it.  
 
 ### Usage Examples
 
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+This example takes three directories and copies them to test/target/, with dir3 having the highest priority.  
+
+If the file has the .css extension, duplicate files within each directory will not be overwritten in test/target/, but will instead be concatenated.  
 
 ```js
 grunt.initConfig({
   copycat: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
+    example : {
+      dirs : ["test/dir1", "test/dir2", "test/dir3"],
+      dest : "test/target/",
+      options: {
+        merge : function(file) {
+          if(file.split(".").pop()==="css") {
+            return true;
+          }
+            
+          return false;
+        }
+      }
+	}
   },
 })
 ```
@@ -56,3 +66,5 @@ grunt.initConfig({
 ## Release History
 
 * Initial Commit
+* Tests and change to merge option functionality
+* Updated Readme
